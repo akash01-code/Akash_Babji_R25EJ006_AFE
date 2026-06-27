@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIRE — Live News</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF8F4;
+    --paper-soft:#F1EDE4;
+    --ink:#1C1C1E;
+    --ink-soft:#4A4742;
+    --muted:#8A8580;
+    --rule:#DDD8CE;
+    --wire-red:#C8102E;
+    --wire-red-soft:#F7DADD;
+    --navy:#1B3A6B;
+    --navy-soft:#E2E8EF;
+    --gold:#A8823C;
+    --gold-soft:#F3ECD9;
+    --green:#2E6F40;
+    --biz-soft:#F4E3D3;
+    --biz-text:#7A4B1A;
+    --font-display:'Playfair Display', Georgia, serif;
+    --font-body:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'JetBrains Mono', 'Courier New', monospace;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  img{max-width:100%;}
+
+  :focus-visible{
+    outline:2px solid var(--navy);
+    outline-offset:2px;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px;}
+
+  /* ---------- Masthead ---------- */
+  header.masthead{
+    position:sticky;top:0;z-index:30;
+    background:var(--paper);
+    border-bottom:3px solid var(--ink);
+  }
+  .masthead-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;
+    max-width:1180px;margin:0 auto;
+    gap:16px;flex-wrap:wrap;
+  }
+  .logo{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:34px;
+    letter-spacing:1px;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .logo small{
+    font-family:var(--font-mono);
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:2px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .masthead-right{
+    display:flex;align-items:center;gap:18px;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .clock{text-align:right;}
+  .clock .time{font-weight:700;font-size:15px;color:var(--ink);}
+  .clock .date{color:var(--muted);font-size:11px;}
+  .live-pill{
+    display:flex;align-items:center;gap:6px;
+    background:var(--ink);color:#fff;
+    padding:6px 10px;border-radius:20px;
+    font-size:11px;letter-spacing:1px;font-weight:700;
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--wire-red);
+    animation:pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:.4;transform:scale(.7);}
+  }
+
+  /* ---------- Ticker ---------- */
+  .ticker-bar{
+    background:var(--wire-red);
+    color:#fff;
+    display:flex;align-items:stretch;
+    overflow:hidden;
+    border-bottom:1px solid #97001f;
+  }
+  .ticker-label{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:8px;
+    background:#97001f;
+    padding:9px 16px;
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:1.5px;
+    white-space:nowrap;
+  }
+  .ticker-label .dot{background:#fff;}
+  .ticker-track-wrap{
+    flex:1 1 auto;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+  .ticker-track{
+    display:flex;
+    white-space:nowrap;
+    font-family:var(--font-mono);
+    font-size:13px;
+    padding-left:100%;
+    animation:scroll-left 32s linear infinite;
+  }
+  .ticker-track span{padding-right:48px;}
+  @keyframes scroll-left{
+    from{transform:translateX(0);}
+    to{transform:translateX(-100%);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ticker-track{animation:none;}
+    .dot{animation:none;}
+  }
+
+  /* ---------- Filter / search row ---------- */
+  .filter-row{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    padding:18px 0;
+    border-bottom:1px solid var(--rule);
+  }
+  .cats{display:flex;gap:8px;flex-wrap:wrap;}
+  .cat-btn{
+    background:transparent;
+    border:1px solid var(--rule);
+    color:var(--ink-soft);
+    padding:7px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+    transition:all .15s ease;
+  }
+  .cat-btn:hover{border-color:var(--navy);color:var(--navy);}
+  .cat-btn.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+  .search-box{
+    display:flex;align-items:center;gap:8px;
+    border:1px solid var(--rule);
+    border-radius:20px;
+    padding:7px 14px;
+    background:#fff;
+    min-width:200px;
+  }
+  .search-box input{
+    border:none;outline:none;background:transparent;
+    font-family:var(--font-body);font-size:13px;
+    width:100%;color:var(--ink);
+  }
+  .search-box svg{flex:0 0 auto;opacity:.5;}
+
+  /* ---------- Top section: hero + latest ---------- */
+  .top-grid{
+    display:grid;
+    grid-template-columns:1.7fr 1fr;
+    gap:36px;
+    padding:32px 0;
+    border-bottom:1px solid var(--rule);
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);
+    font-size:11px;font-weight:700;letter-spacing:1.5px;
+    text-transform:uppercase;
+    padding:4px 9px;
+    border-radius:3px;
+  }
+  .eyebrow.breaking{background:var(--wire-red-soft);color:var(--wire-red);}
+  .eyebrow .dot{background:var(--wire-red);width:5px;height:5px;}
+
+  .hero{cursor:pointer;}
+  .hero-media{
+    width:100%;height:280px;
+    border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:center;
+    font-size:64px;
+    margin-bottom:18px;
+  }
+  .hero h1{
+    font-family:var(--font-display);
+    font-size:36px;
+    line-height:1.15;
+    margin:12px 0 10px;
+    font-weight:700;
+  }
+  .hero:hover h1{text-decoration:underline;text-decoration-color:var(--rule);}
+  .hero p.summary{color:var(--ink-soft);font-size:16px;margin:0 0 12px;}
+  .meta{
+    font-family:var(--font-mono);
+    font-size:12px;color:var(--muted);
+    display:flex;gap:10px;align-items:center;
+  }
+  .meta .src{color:var(--ink-soft);font-weight:600;}
+
+  .latest-col h2.col-title{
+    font-family:var(--font-mono);
+    font-size:12px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--ink);
+  }
+  .latest-item{
+    display:flex;gap:12px;
+    padding:13px 0;
+    border-bottom:1px solid var(--rule);
+    cursor:pointer;
+  }
+  .latest-item:last-child{border-bottom:none;}
+  .latest-item .num{
+    font-family:var(--font-mono);
+    font-size:13px;color:var(--rule);font-weight:700;
+    flex:0 0 22px;
+  }
+  .latest-item .body h3{
+    font-size:14.5px;font-weight:600;margin:0 0 6px;line-height:1.35;
+  }
+  .latest-item:hover .body h3{text-decoration:underline;}
+  .latest-item .body .meta{font-size:11px;}
+  .latest-item.is-new .body h3{animation:flash 2.4s ease;}
+  @keyframes flash{
+    0%{background:#FFF3D2;}
+    100%{background:transparent;}
+  }
+
+  /* ---------- Archive / grid ---------- */
+  .archive-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    padding:28px 0 16px;
+  }
+  .archive-head h2{
+    font-family:var(--font-display);
+    font-size:24px;margin:0;
+  }
+  .archive-head .count{
+    font-family:var(--font-mono);font-size:12px;color:var(--muted);
+  }
+  .cards-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+    padding-bottom:48px;
+  }
+  .card{
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    overflow:hidden;
+    cursor:pointer;
+    background:#fff;
+    display:flex;flex-direction:column;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 24px rgba(0,0,0,.07);
+  }
+  .card-media{
+    height:130px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:42px;
+  }
+  .card-body{padding:16px;flex:1;display:flex;flex-direction:column;gap:8px;}
+  .card-body h3{
+    font-family:var(--font-display);
+    font-size:18px;line-height:1.25;margin:0;font-weight:700;
+  }
+  .card-body p{font-size:13.5px;color:var(--ink-soft);margin:0;flex:1;}
+  .empty-state{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+    font-family:var(--font-mono);
+    font-size:13px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer{
+    border-top:3px solid var(--ink);
+    padding:28px 0 40px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(20,18,15,.55);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:60px 20px;overflow-y:auto;z-index:100;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--paper);
+    max-width:680px;width:100%;
+    border-radius:var(--radius);
+    padding:36px;
+    position:relative;
+    box-shadow:0 30px 60px rgba(0,0,0,.3);
+  }
+  .modal-close{
+    position:absolute;top:18px;right:18px;
+    background:var(--ink);color:#fff;
+    width:30px;height:30px;border-radius:50%;
+    border:none;font-size:16px;line-height:1;
+  }
+  .modal h2{
+    font-family:var(--font-display);
+    font-size:30px;margin:14px 0 12px;line-height:1.2;
+  }
+  .modal .meta{margin-bottom:18px;}
+  .modal .modal-media{
+    height:200px;border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:center;
+    font-size:56px;margin-bottom:18px;
+  }
+  .modal p{font-size:15.5px;color:var(--ink-soft);margin:0 0 14px;}
+
+  /* ---------- Toast ---------- */
+  .toast-host{
+    position:fixed;bottom:20px;right:20px;z-index:200;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .toast{
+    background:var(--ink);color:#fff;
+    padding:13px 16px;border-radius:var(--radius);
+    font-size:13px;display:flex;align-items:center;gap:10px;
+    max-width:300px;
+    box-shadow:0 10px 24px rgba(0,0,0,.25);
+    animation:toast-in .25s ease;
+  }
+  .toast .dot{background:#5BD37A;}
+  @keyframes toast-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:900px){
+    .top-grid{grid-template-columns:1fr;}
+    .cards-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:600px){
+    .logo{font-size:26px;}
+    .masthead-right{font-size:11px;gap:12px;}
+    .cards-grid{grid-template-columns:1fr;}
+    .hero h1{font-size:26px;}
+    .filter-row{flex-direction:column;align-items:stretch;}
+    .search-box{min-width:0;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="logo">WIRE <small>Live Desk</small></div>
+    <div class="masthead-right">
+      <div class="live-pill"><span class="dot"></span> LIVE</div>
+      <div class="clock">
+        <div class="time" id="clockTime">--:--:--</div>
+        <div class="date" id="clockDate">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="ticker-bar">
+    <div class="ticker-label"><span class="dot"></span> BREAKING</div>
+    <div class="ticker-track-wrap">
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="filter-row">
+    <div class="cats" id="catButtons"></div>
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search stories…" aria-label="Search stories">
+    </div>
+  </div>
+
+  <section class="top-grid">
+    <div class="hero" id="heroSlot"></div>
+    <div class="latest-col">
+      <h2 class="col-title">Latest Updates</h2>
+      <div id="latestList"></div>
+    </div>
+  </section>
+
+  <div class="archive-head">
+    <h2>All Stories</h2>
+    <span class="count" id="resultCount"></span>
+  </div>
+  <section class="cards-grid" id="cardsGrid"></section>
+
+</main>
+
+<footer class="wrap">
+  <span>WIRE LIVE DESK — demo edition, content simulated for preview purposes</span>
+  <span id="footerTime"></span>
+</footer>
+
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+<script>
+(function(){
+
+  // ---------------- Category metadata ----------------
+  const CATS = {
+    world:   { label:"World",    icon:"🌐", soft:"var(--navy-soft)",   text:"var(--navy)"    },
+    business:{ label:"Business", icon:"📈", soft:"var(--biz-soft)",    text:"var(--biz-text)"},
+    tech:    { label:"Tech",     icon:"💻", soft:"var(--gold-soft)",   text:"var(--gold)"    },
+    sports:  { label:"Sports",   icon:"🏆", soft:"var(--wire-red-soft)",text:"var(--wire-red)"},
+    culture: { label:"Culture",  icon:"🎭", soft:"#EAE6F2",            text:"#5B4A8A"        }
+  };
+
+  // ---------------- Seed data ----------------
+  // minutesAgo is resolved to a real Date at load time.
+  const seed = [
+    { cat:"world",    breaking:true,  minutesAgo:4,
+      h:"Diplomatic Talks Resume After Six-Month Stalemate",
+      s:"Negotiators from both delegations returned to the table today, with mediators describing the mood as cautiously constructive.",
+      b:"Negotiators from both delegations returned to the table today after a six-month pause, with mediators describing the mood as cautiously constructive. A joint statement is expected once technical teams finish reviewing the latest proposal. Observers note that previous rounds stalled over verification procedures rather than the core terms themselves.",
+      src:"Wire Desk" },
+    { cat:"business", breaking:false, minutesAgo:19,
+      h:"Central Bank Holds Interest Rates Steady, Signals Caution on Inflation",
+      s:"Policymakers kept the benchmark rate unchanged for a third straight meeting, citing mixed signals in recent employment data.",
+      b:"Policymakers kept the benchmark rate unchanged for a third straight meeting, citing mixed signals in recent employment and pricing data. The accompanying statement struck a more cautious tone than markets had expected, with several officials flagging that further moves would depend on the next two inflation reports.",
+      src:"Market Desk" },
+    { cat:"tech",     breaking:false, minutesAgo:27,
+      h:"Researchers Unveil Faster Chip Architecture for AI Workloads",
+      s:"The new design reduces power draw while improving throughput on common machine-learning benchmarks, according to a published paper.",
+      b:"The new architecture reduces power draw while improving throughput on common machine-learning benchmarks, according to a paper published this week. Independent labs say early reproductions look promising, though commercial hardware built on the design is not expected for at least a year.",
+      src:"Tech Desk" },
+    { cat:"sports",   breaking:false, minutesAgo:34,
+      h:"Underdog Team Advances to Championship Final in Stunning Upset",
+      s:"A second-half comeback sealed the result, sending the lowest-seeded team in the tournament through to the final.",
+      b:"A second-half comeback sealed the result, sending the lowest-seeded team in the tournament through to the final for the first time in club history. Fans flooded the streets outside the stadium as the final whistle blew, with the manager calling it 'the proudest night of my career.'",
+      src:"Sports Desk" },
+    { cat:"culture",  breaking:false, minutesAgo:41,
+      h:"Restored Classic Film Returns to Theaters for Anniversary Tour",
+      s:"A newly restored print will screen in selected cities, accompanied by a short retrospective from the original crew.",
+      b:"A newly restored print will screen in selected cities this autumn, accompanied by a short retrospective featuring surviving members of the original crew. The restoration took over two years and drew on archival negatives held in three separate film vaults.",
+      src:"Culture Desk" },
+    { cat:"world",    breaking:false, minutesAgo:52,
+      h:"Coastal Cities Accelerate Flood Defense Spending Ahead of Storm Season",
+      s:"Several municipalities have fast-tracked barrier projects after last year's storm season caused record damage.",
+      b:"Several municipalities have fast-tracked barrier and drainage projects after last year's storm season caused record damage to low-lying neighborhoods. Engineers say the accelerated timeline will still leave some at-risk areas without full protection before the coming season begins.",
+      src:"World Desk" },
+    { cat:"business", breaking:false, minutesAgo:58,
+      h:"Retail Sales Beat Forecasts as Consumer Spending Rebounds",
+      s:"Spending rose across most categories last month, easing concerns about a slowdown heading into the year's second half.",
+      b:"Spending rose across most categories last month, easing concerns about a broader slowdown heading into the second half of the year. Analysts cautioned that the gains were concentrated in a handful of sectors and may not hold once seasonal promotions taper off.",
+      src:"Market Desk" },
+    { cat:"tech",     breaking:false, minutesAgo:66,
+      h:"Startup Raises Funding Round to Expand Satellite Internet Coverage",
+      s:"The company plans to use the new capital to launch additional ground stations in underserved regions.",
+      b:"The company plans to use the new capital to launch additional ground stations in regions currently underserved by terrestrial broadband. Executives say service could expand to several new countries within eighteen months, pending regulatory approval in each market.",
+      src:"Tech Desk" },
+    { cat:"sports",   breaking:false, minutesAgo:73,
+      h:"Star Striker Signs Record Contract Extension",
+      s:"The deal makes the forward the highest-paid player in the league's history, the club confirmed on Thursday.",
+      b:"The deal makes the forward the highest-paid player in the league's history, the club confirmed on Thursday. The extension runs through the next four seasons and includes performance-based clauses tied to continental competition appearances.",
+      src:"Sports Desk" },
+    { cat:"culture",  breaking:false, minutesAgo:80,
+      h:"Indie Author's Debut Novel Tops Bestseller Lists",
+      s:"The novel, written over six years while the author worked a full-time job, has now sold in twenty-two territories.",
+      b:"The novel, written over six years while the author worked a full-time job, has now been sold into twenty-two territories. A television adaptation is reportedly already in early development, though no network has been officially confirmed.",
+      src:"Culture Desk" },
+    { cat:"world",    breaking:false, minutesAgo:88,
+      h:"Cross-Border Rail Project Clears Final Regulatory Hurdle",
+      s:"Construction on the long-delayed rail link can now begin after the last outstanding permit was approved.",
+      b:"Construction on the long-delayed rail link can now begin after the last outstanding environmental permit was approved this week. The project, first proposed over a decade ago, is expected to cut freight transit times between the two regions by nearly half.",
+      src:"World Desk" },
+    { cat:"business", breaking:false, minutesAgo:95,
+      h:"Major Airline Announces Fleet Expansion Amid Rising Travel Demand",
+      s:"The carrier confirmed an order for dozens of new aircraft to be delivered over the next five years.",
+      b:"The carrier confirmed an order for dozens of new aircraft to be delivered over the next five years, citing sustained growth in long-haul demand. The expansion will also add several new routes currently underserved by direct flights.",
+      src:"Market Desk" },
+    { cat:"tech",     breaking:false, minutesAgo:101,
+      h:"Open-Source Project Hits Milestone With Community Contributions",
+      s:"The widely used library passed a major contributor milestone, with maintainers crediting a recent push for new documentation.",
+      b:"The widely used library passed a major contributor milestone this month, with maintainers crediting a recent push for clearer documentation and a more welcoming onboarding process for first-time contributors.",
+      src:"Tech Desk" },
+    { cat:"sports",   breaking:false, minutesAgo:109,
+      h:"Marathon Record Broken in Cool Morning Conditions",
+      s:"Favorable weather and a fast-paced lead group combined to produce the quickest time recorded on the course.",
+      b:"Favorable weather and a fast-paced lead group combined to produce the quickest time ever recorded on the course. Race organizers noted that three of the top five finishers also posted personal bests under the same conditions.",
+      src:"Sports Desk" },
+    { cat:"culture",  breaking:false, minutesAgo:117,
+      h:"City Announces Lineup for Summer Music Festival",
+      s:"Organizers revealed the full schedule today, with headline slots split across three stages over four days.",
+      b:"Organizers revealed the full schedule today, with headline slots split across three stages over four days. Early ticket tiers sold out within hours, prompting organizers to add a fourth wave of general admission passes.",
+      src:"Culture Desk" },
+    { cat:"world",    breaking:false, minutesAgo:124,
+      h:"Climate Summit Negotiators Reach Draft Agreement on Emissions Targets",
+      s:"A draft text circulated to delegations sets out interim targets ahead of a final vote expected later this week.",
+      b:"A draft text circulated to delegations sets out interim emissions targets ahead of a final vote expected later this week. Several smaller delegations welcomed the draft while pushing for stronger financing commitments before signing on.",
+      src:"World Desk" },
+    { cat:"business", breaking:false, minutesAgo:132,
+      h:"Tech Manufacturer Reports Record Quarterly Shipments",
+      s:"Strong demand for its latest product line pushed shipment volumes to an all-time high for the quarter.",
+      b:"Strong demand for its latest product line pushed shipment volumes to an all-time high for the quarter, the company said in its earnings release. Shares rose in after-hours trading following the announcement.",
+      src:"Market Desk" }
+  ];
+
+  // Pool of stories that arrive "live" while the page is open, cycled in order.
+  const incomingPool = [
+    { cat:"world",    h:"Officials Confirm Ceasefire Talks to Resume Within Hours",
+      s:"A spokesperson said both sides have agreed to a venue and are finalizing the agenda for the new session.",
+      b:"A spokesperson said both sides have agreed on a venue and are finalizing the agenda for the new session. Details on attendees have not yet been released, though both delegations are expected to confirm their lists shortly.",
+      src:"Wire Desk" },
+    { cat:"business", h:"Markets Rally After Surprise Rate Cut Announcement",
+      s:"Major indices climbed within minutes of the announcement, with the move catching most analysts off guard.",
+      b:"Major indices climbed within minutes of the announcement, with the move catching most analysts off guard heading into the close. Trading volume spiked well above the daily average as the news spread.",
+      src:"Market Desk" },
+    { cat:"tech",     h:"Major Cloud Outage Disrupts Services Across Multiple Platforms",
+      s:"Engineers are investigating the cause after a wave of reports pointed to a single regional data center.",
+      b:"Engineers are investigating the cause after a wave of user reports pointed to a single regional data center. Several widely used apps and services reported intermittent errors, with a fix said to be in progress.",
+      src:"Tech Desk" },
+    { cat:"sports",   h:"Championship Game Heads to Overtime After Late Equalizer",
+      s:"A stoppage-time goal leveled the score, sending the final into an extra period in front of a sold-out crowd.",
+      b:"A stoppage-time goal leveled the score, sending the final into an extra period in front of a sold-out crowd. Commentators called it one of the most dramatic finishes the competition has seen in years.",
+      src:"Sports Desk" },
+    { cat:"world",    h:"Emergency Services Respond to Building Evacuation Downtown",
+      s:"No injuries have been reported so far, and authorities say the cause of the evacuation is still under review.",
+      b:"No injuries have been reported so far, and authorities say the cause of the evacuation is still under review. Nearby streets were temporarily closed as crews worked to clear the building.",
+      src:"Wire Desk" },
+    { cat:"tech",     h:"Software Company Issues Urgent Security Patch",
+      s:"Users are being urged to update immediately after a vulnerability affecting a widely used component was disclosed.",
+      b:"Users are being urged to update immediately after a vulnerability affecting a widely used component was publicly disclosed. The company says it has no evidence of the flaw being exploited before today's patch.",
+      src:"Tech Desk" }
+  ];
+
+  // ---------------- Build article objects ----------------
+  let nextId = 1;
+  const now = Date.now();
+  let articles = seed.map(a => ({
+    id: nextId++,
+    cat: a.cat,
+    breaking: !!a.breaking,
+    headline: a.h,
+    summary: a.s,
+    body: a.b,
+    src: a.src,
+    publishedAt: now - a.minutesAgo * 60000
+  }));
+  articles.sort((x,y) => y.publishedAt - x.publishedAt);
+
+  let activeCat = "all";
+  let searchTerm = "";
+  let poolIndex = 0;
+
+  // ---------------- Helpers ----------------
+  function relTime(ts){
+    const diffMin = Math.floor((Date.now() - ts) / 60000);
+    if (diffMin < 1) return "just now";
+    if (diffMin === 1) return "1 min ago";
+    if (diffMin < 60) return diffMin + " mins ago";
+    const diffHr = Math.floor(diffMin/60);
+    if (diffHr === 1) return "1 hr ago";
+    if (diffHr < 24) return diffHr + " hrs ago";
+    const diffDay = Math.floor(diffHr/24);
+    return diffDay + (diffDay === 1 ? " day ago" : " days ago");
+  }
+
+  function catMeta(catKey){ return CATS[catKey] || CATS.world; }
+
+  function tag(catKey){
+    const m = catMeta(catKey);
+    return `<span class="eyebrow" style="background:${m.soft};color:${m.text}">${m.label}</span>`;
+  }
+
+  function mediaBlock(catKey, breaking, extraStyle){
+    const m = catMeta(catKey);
+    return `<div class="${extraStyle ? extraStyle : ''}" style="background:${m.soft};">${m.icon}</div>`;
+  }
+
+  // ---------------- Render: ticker ----------------
+  function renderTicker(){
+    const breakingItems = articles.filter(a => a.breaking).slice(0, 6);
+    const pieces = breakingItems.length
+      ? breakingItems.map(a => a.headline)
+      : ["No breaking alerts right now — check back shortly"];
+    const text = pieces.join("     //     ");
+    const track = document.getElementById("tickerTrack");
+    track.innerHTML = `<span>${text}</span><span>${text}</span>`;
+  }
+
+  // ---------------- Render: hero ----------------
+  function renderHero(){
+    const hero = articles[0];
+    const slot = document.getElementById("heroSlot");
+    if (!hero){ slot.innerHTML = ""; return; }
+    slot.dataset.id = hero.id;
+    slot.innerHTML = `
+      ${mediaBlock(hero.cat, hero.breaking, "hero-media")}
+      ${hero.breaking ? '<span class="eyebrow breaking"><span class="dot"></span>Breaking</span>' : tag(hero.cat)}
+      <h1>${hero.headline}</h1>
+      <p class="summary">${hero.summary}</p>
+      <div class="meta"><span class="src">${hero.src}</span><span>·</span><span class="time-tag" data-ts="${hero.publishedAt}">${relTime(hero.publishedAt)}</span></div>
+    `;
+    slot.onclick = () => openModal(hero.id);
+  }
+
+  // ---------------- Render: latest sidebar ----------------
+  function renderLatest(){
+    const list = articles.slice(1, 7);
+    const host = document.getElementById("latestList");
+    host.innerHTML = list.map((a, i) => `
+      <div class="latest-item" data-id="${a.id}">
+        <div class="num">${String(i+1).padStart(2,'0')}</div>
+        <div class="body">
+          <h3>${a.headline}</h3>
+          <div class="meta"><span class="src">${a.src}</span><span>·</span><span class="time-tag" data-ts="${a.publishedAt}">${relTime(a.publishedAt)}</span></div>
+        </div>
+      </div>
+    `).join("");
+    host.querySelectorAll(".latest-item").forEach(el => {
+      el.onclick = () => openModal(Number(el.dataset.id));
+    });
+  }
+
+  // ---------------- Render: archive grid ----------------
+  function renderGrid(){
+    const grid = document.getElementById("cardsGrid");
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = articles.filter(a => {
+      const catOk = activeCat === "all" || a.cat === activeCat;
+      const searchOk = !term || (a.headline + " " + a.summary).toLowerCase().includes(term);
+      return catOk && searchOk;
+    });
+
+    document.getElementById("resultCount").textContent = filtered.length + (filtered.length === 1 ? " story" : " stories");
+
+    if (!filtered.length){
+      grid.innerHTML = `<div class="empty-state">No stories match your filters. Try a different category or search term.</div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(a => `
+      <div class="card" data-id="${a.id}">
+        ${mediaBlock(a.cat, a.breaking, "card-media")}
+        <div class="card-body">
+          ${a.breaking ? '<span class="eyebrow breaking"><span class="dot"></span>Breaking</span>' : tag(a.cat)}
+          <h3>${a.headline}</h3>
+          <p>${a.summary}</p>
+          <div class="meta"><span class="src">${a.src}</span><span>·</span><span class="time-tag" data-ts="${a.publishedAt}">${relTime(a.publishedAt)}</span></div>
+        </div>
+      </div>
+    `).join("");
+
+    grid.querySelectorAll(".card").forEach(el => {
+      el.onclick = () => openModal(Number(el.dataset.id));
+    });
+  }
+
+  function renderAll(){
+    renderTicker();
+    renderHero();
+    renderLatest();
+    renderGrid();
+  }
+
+  // ---------------- Category buttons ----------------
+  function renderCatButtons(){
+    const all = [{key:"all", label:"All"}].concat(
+      Object.keys(CATS).map(k => ({ key:k, label:CATS[k].label }))
+    );
+    const host = document.getElementById("catButtons");
+    host.innerHTML = all.map(c =>
+      `<button class="cat-btn${c.key===activeCat?' active':''}" data-key="${c.key}">${c.label}</button>`
+    ).join("");
+    host.querySelectorAll(".cat-btn").forEach(btn => {
+      btn.onclick = () => {
+        activeCat = btn.dataset.key;
+        renderCatButtons();
+        renderGrid();
+      };
+    });
+  }
+
+  // ---------------- Search ----------------
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    searchTerm = e.target.value;
+    renderGrid();
+  });
+
+  // ---------------- Modal ----------------
+  function openModal(id){
+    const a = articles.find(x => x.id === id);
+    if (!a) return;
+    document.getElementById("modalContent").innerHTML = `
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close">✕</button>
+      ${mediaBlock(a.cat, a.breaking, "modal-media")}
+      ${a.breaking ? '<span class="eyebrow breaking"><span class="dot"></span>Breaking</span>' : tag(a.cat)}
+      <h2>${a.headline}</h2>
+      <div class="meta"><span class="src">${a.src}</span><span>·</span><span>${relTime(a.publishedAt)}</span></div>
+      <p>${a.body}</p>
+    `;
+    document.getElementById("modalBackdrop").classList.add("open");
+    document.getElementById("modalCloseBtn").onclick = closeModal;
+  }
+  function closeModal(){
+    document.getElementById("modalBackdrop").classList.remove("open");
+  }
+  document.getElementById("modalBackdrop").addEventListener("click", (e) => {
+    if (e.target.id === "modalBackdrop") closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  // ---------------- Toast ----------------
+  function showToast(text){
+    const host = document.getElementById("toastHost");
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.innerHTML = `<span class="dot"></span> ${text}`;
+    host.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+
+  // ---------------- Live clock ----------------
+  function tickClock(){
+    const d = new Date();
+    document.getElementById("clockTime").textContent = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById("clockDate").textContent = d.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' });
+    document.getElementById("footerTime").textContent = "Page synced " + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  // ---------------- Relative-time refresh ----------------
+  setInterval(() => {
+    document.querySelectorAll(".time-tag").forEach(el => {
+      el.textContent = relTime(Number(el.dataset.ts));
+    });
+  }, 15000);
+
+  // ---------------- Simulated live incoming stories ----------------
+  function injectLiveStory(){
+    const item = incomingPool[poolIndex % incomingPool.length];
+    poolIndex++;
+    const story = {
+      id: nextId++,
+      cat: item.cat,
+      breaking: true,
+      headline: item.h,
+      summary: item.s,
+      body: item.b,
+      src: item.src,
+      publishedAt: Date.now()
+    };
+    articles.unshift(story);
+    renderAll();
+    // flash the new top sidebar item
+    const first = document.querySelector(".latest-item");
+    if (first) first.classList.add("is-new");
+    showToast("New story: " + story.headline.slice(0, 46) + (story.headline.length > 46 ? "…" : ""));
+  }
+  setInterval(injectLiveStory, 28000);
+
+  // ---------------- Init ----------------
+  renderCatButtons();
+  renderAll();
+
+})();
+</script>
+
+</body>
+</html>
